@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { searchMovie } from "./service/apiCall"; 
+import { getFavoriteList, searchMovie } from "./service/apiCall"; 
 import "./App.css";
 import { MovieType } from "./type/type";
 import MovieCard from "./component/MovieCard";
+import { Heart } from 'lucide-react';
 
 function App() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [movies, setMovies] = useState<MovieType[]>([]);
+  const [favMovie, setFavMovie] = useState<MovieType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);  
   const [totalResults, setTotalResults] = useState(0);  
+  const [showFavorites, setShowFavorites] = useState(false);
   const moviesPerPage = 10;  
 
   useEffect(() => {
@@ -19,6 +22,10 @@ function App() {
     }, 500);
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    getFavMovieList();
+  }, []);
 
   useEffect(() => {
     if (debouncedSearch) {
@@ -34,7 +41,7 @@ function App() {
 
         if (response?.data?.Search) {
           setMovies(response.data.Search);
-          setTotalResults(parseInt(response.data.totalResults, 10) || 0); // Set total results from API
+          setTotalResults(parseInt(response.data.totalResults, 10) || 0);
         }
       };
       fetchMovies();
@@ -55,8 +62,31 @@ function App() {
     }
   };
 
+  const getFavMovieList = async () => {
+    const response = await getFavoriteList();
+    setFavMovie(response.data ?? []);
+  };
+
+  const toggleFavorites = () => {
+    setShowFavorites(!showFavorites);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-8">
+    <div className="min-h-screen bg-gray-100 px-4 py-8 relative">
+      <div className="absolute top-4 right-4">
+        <button 
+          onClick={toggleFavorites}
+          className="relative p-2 bg-violet-500 rounded-full hover:bg-violet-400 transition-colors"
+        >
+          <Heart className="text-white" fill="white" size={24} />
+          {favMovie.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {favMovie.length}
+            </span>
+          )}
+        </button>
+      </div>
+
       <div className="flex justify-center mb-8">
         <div className="flex gap-2">
           <input
@@ -78,13 +108,35 @@ function App() {
         </div>
       </div>
 
-      {movies.length > 0 ? (
+      {showFavorites || (!debouncedSearch && favMovie.length > 0) ? (
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl font-bold text-center mb-6">Favorite Movies</h2>
+          {favMovie.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+              {favMovie.map((movie) => (
+                <MovieCard 
+                  key={movie.imdbID} 
+                  movie={movie}
+                  favMovie={favMovie}
+                  setFavMovie={setFavMovie}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-600 text-xl mt-12">
+              No favorite movies yet
+            </div>
+          )}
+        </div>
+      ) : debouncedSearch && movies.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
             {movies.map((movie) => (
               <MovieCard 
                 key={movie.imdbID} 
-                movie={movie} 
+                movie={movie}
+                favMovie={favMovie}
+                setFavMovie={setFavMovie}
               />
             ))}
           </div>
@@ -119,7 +171,7 @@ function App() {
         </>
       ) : (
         <div className="text-center text-gray-600 text-xl mt-12">
-          No movies found
+          {debouncedSearch ? "No movies found" : "Search for movies or view your favorites"}
         </div>
       )}
     </div>
