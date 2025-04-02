@@ -1,14 +1,14 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 const BACKEND_URI = import.meta.env.VITE_BACKEND_URI || 'http://localhost:8000'
-export const searchMovie = async (query: string) => {
+export const searchMovie = async (query: string, currentPage:number = 1) => {
     if (!query.trim()) {
         toast.error("Please enter a valid string");
         return null; 
     }
 
     try {
-        const response = await axios.get(`${BACKEND_URI}/api/movies/search?query=${encodeURIComponent(query)}`);
+        const response = await axios.get(`${BACKEND_URI}/api/movies/search?query=${encodeURIComponent(query)}&page=${currentPage}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
