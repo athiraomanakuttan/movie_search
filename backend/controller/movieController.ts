@@ -1,62 +1,75 @@
-import { Request,response,Response } from "express"
-import axios from 'axios'
-import { readFavorites, writeFavorites } from "../utils/favUtils.js"
-import { MovieType } from "../types/types.js"
-export const searchMovie = async (req:Request, res:Response)=>{
-    const {query,page} = req.query
-    const apikey = process.env.OMDB_API_KEY
-    if(!String(query).trim()){
-        res.status(403).json({status:false, message:"invalid input"})
-        return
-    }
-    try {
-        const response = await axios.get(`https://www.omdbapi.com/?apikey=${apikey}&s=${query}&page=${page}`)
-        res.status(200).json({status: true, message:"data fetched successfull", data: response.data ?? []})
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({status: false, message:"Internal server error"})
-    }
-}
+import { Request,Response } from "express"
+import IMovieService from "../service/interface/IMoveService.js"
+import { STATUS_CODE } from "../constance/statusCode.js"
+import { ERROR_MESSAGE} from "../constance/errorMessage.js"
+import { SUCESS_MESSAGE } from "../constance/sucessMessage.js"
 
-// get all favorite movies
+class MovieController{
 
-export const getFavorites = async (req:Request, res:Response)=>{
+    private _movieService: IMovieService
+    constructor(movieService: IMovieService){
+        this._movieService = movieService
+    }
+
+    //search movie with query
+    async searchMovie(req:Request, res:Response){
+        const {query,page} = req.query
+        if(!String(query).trim()){
+            res.status(STATUS_CODE.INVALID_INPUT).json({status:false, message:ERROR_MESSAGE})
+            return
+        }
+        try {
+            const response = await this._movieService.searchMovie(query as string,Number(page))
+            res.status(STATUS_CODE.OK).json({status: true, message:SUCESS_MESSAGE.FETCH_SUCESS, data: response ?? []})
+        } catch (error) {
+            console.log(error)
+            res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({status: false, message:ERROR_MESSAGE.INTERNAL_SERVER_ERROR})
+        }
+    }
+
+    // get all favorite movies
+
+   async  getFavorites(req:Request, res:Response){
     try {
-        const response = readFavorites()
-        res.status(200).json({status: true, message:"data fetched sucessfully", data:response})
+        const response =  await this._movieService.getFavorites()
+        res.status(STATUS_CODE.OK).json({status: true, message:SUCESS_MESSAGE.FETCH_SUCESS, data:response})
     } catch (error) {
-        res.status(500).json({status: false, message:"internal server error"})
+        res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({status: false, message:ERROR_MESSAGE.INTERNAL_SERVER_ERROR})
     }
 }
 
 // add new movie to the list
-export const addToFavorites = (req:Request, res:Response)=>{
+async addToFavorites(req:Request, res:Response){
     const { movie } = req.body;
     try {
-        let favorites = readFavorites();
-
-    if (!favorites.find((fav:MovieType) => fav.imdbID === movie.imdbID)) {
-        favorites.push(movie);
-        writeFavorites(favorites);
-    }
-        res.status(200).json({status: true, message:"Movie added to favorite", data: favorites})
+       const response =  await this._movieService.addToFavorite(movie)
+        res.status(STATUS_CODE.OK).json({status: true, message:SUCESS_MESSAGE.INSERT_SUCESS, data: response})
 
     } catch (error) {
-        res.status(500).json({status: false, message:"internal server error"})
+        res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({status: false, message:ERROR_MESSAGE.INTERNAL_SERVER_ERROR})
         
     }
 
 }
 
-export const removeFromFavorites = (req:Request, res:Response)=>{
+
+async removeFromFavorites(req:Request, res:Response){
     const { id } = req.params
     try {
-        let favorites = readFavorites();
-    favorites = favorites.filter((fav:MovieType) => fav.imdbID !== id);
-    writeFavorites(favorites);
-    res.status(200).json({status: true, message:"movie removed from favorites", data: favorites})
+        const response = await this._movieService.removeFromFavorites(id)
+    res.status(STATUS_CODE.OK).json({status: true, message:SUCESS_MESSAGE.REMOVE_SUCESS, data: response ?? []})
     } catch (error) {
-        res.status(500).json({status: false, message:"internal server error"})
-        
+        res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({status: false, message:ERROR_MESSAGE.INTERNAL_SERVER_ERROR})
     }
 }
+
+
+}
+
+export default MovieController
+
+
+
+
+
+

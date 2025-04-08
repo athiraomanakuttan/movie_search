@@ -5,3 +5,12 @@ export interface MovieType {
     Type ?:string,
     Poster ?: string
 }
+
+
+export interface MovieResponseType {
+    Response: string;  
+    Error?: string;
+    totalResults?: string;
+    Search?: MovieType[];
+  }
+  
