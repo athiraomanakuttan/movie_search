@@ -2,9 +2,7 @@ import axios from "axios";
 import IMovieService from "./interface/IMoveService.js";
 import { MovieResponseType, MovieType } from "../types/types.js";
 import { readFavorites, writeFavorites } from "../utils/favUtils.js";
-
-const apikey = process.env.OMDB_API_KEY;
-const OMDB_URI = process.env.OMDB_URI;
+import { API_KEY, OMDB_URI } from "../config/envConfig.js";
 
 class MovieService implements IMovieService {
   // get movie from external API
@@ -12,18 +10,18 @@ class MovieService implements IMovieService {
     query: string,
     page: number
   ): Promise<MovieResponseType | null> {
+    
     try {
       const response = await axios.get(
-        `${OMDB_URI}?apikey=${apikey}&s=${query}&page=${page}`
+        `${OMDB_URI}?apikey=${API_KEY}&s=${query}&page=${page}`
       );
       return response.data;
     } catch (error) {
-      console.log("error", error);
       return null;
     }
   }
 
-// get all favorite movies
+  // get all favorite movies
   async getFavorites(): Promise<MovieType[] | null> {
     try {
       const response = readFavorites();
@@ -33,7 +31,7 @@ class MovieService implements IMovieService {
     }
   }
 
-// add a new movie to the favorite list
+  // add a new movie to the favorite list
 
   async addToFavorite(movie: MovieType): Promise<MovieType | null> {
     try {
@@ -51,9 +49,7 @@ class MovieService implements IMovieService {
 
   // remove a movie from favorite list
 
-  async removeFromFavorites(
-    id: string
-  ): Promise<MovieType | null> {
+  async removeFromFavorites(id: string): Promise<MovieType | null> {
     try {
       let favorites = readFavorites();
       favorites = favorites.filter((fav: MovieType) => fav.imdbID !== id);

@@ -30,6 +30,7 @@ class MovieController{
     // get all favorite movies
 
    async  getFavorites(req:Request, res:Response){
+    
     try {
         const response =  await this._movieService.getFavorites()
         res.status(STATUS_CODE.OK).json({status: true, message:SUCESS_MESSAGE.FETCH_SUCESS, data:response})
