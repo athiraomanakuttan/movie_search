@@ -5,7 +5,7 @@ interface IMovieService{
     searchMovie(query: string,page:number):Promise<MovieResponseType | null>
     getFavorites():Promise<MovieType[] | null>
     addToFavorite(movie:MovieType):Promise<MovieType | null>
-    removeFromFavorites(id:string):Promise<MovieType | null>
+    removeFromFavorites(imdbID:string):Promise<MovieType | null>
     
 }
 

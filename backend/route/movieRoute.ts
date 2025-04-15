@@ -11,6 +11,6 @@ const router = Router()
 router.get('/search', (req,res)=>movieController.searchMovie(req,res))
 router.get('/favorites',  (req,res)=>movieController.getFavorites(req,res))
 router.post('/favorites',  (req,res)=>movieController.addToFavorites(req,res))
-router.put('/favorites/:id',  (req,res)=>movieController.removeFromFavorites(req,res))
+router.put('/favorites/:imdbID',  (req,res)=>movieController.removeFromFavorites(req,res))
 
 export default router

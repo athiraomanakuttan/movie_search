@@ -49,10 +49,10 @@ class MovieService implements IMovieService {
 
   // remove a movie from favorite list
 
-  async removeFromFavorites(id: string): Promise<MovieType | null> {
+  async removeFromFavorites(imdbID: string): Promise<MovieType | null> {
     try {
       let favorites = readFavorites();
-      favorites = favorites.filter((fav: MovieType) => fav.imdbID !== id);
+      favorites = favorites.filter((fav: MovieType) => fav.imdbID !== imdbID);
       writeFavorites(favorites);
       return favorites;
     } catch (error) {
